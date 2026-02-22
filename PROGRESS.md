@@ -33,3 +33,5 @@
 - Added blacklist seeding loader (asset-driven).
 - Added malicious false-positive action and UnshortenService retry.
 - Seeded blacklist with a minimal PhishTank snapshot.
+- Fixed forwarder loop (chooser excludes AegisLink) and onboarding selection UX.
+- Added explicit VT key save button.

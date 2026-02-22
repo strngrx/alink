@@ -18,6 +18,8 @@ import kotlinx.coroutines.launch
 
 class OnboardingActivity : AppCompatActivity() {
 
+    private var selectedPackage: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_onboarding)
@@ -28,22 +30,51 @@ class OnboardingActivity : AppCompatActivity() {
         val recycler = findViewById<RecyclerView>(R.id.browserRecycler)
         recycler.layoutManager = LinearLayoutManager(this)
 
+        val selectedLabel = findViewById<android.widget.TextView>(R.id.selectedBrowserLabel)
+        val finishButton = findViewById<MaterialButton>(R.id.finishOnboardingButton)
+        finishButton.isEnabled = false
+
         val adapter = BrowserListAdapter { item ->
             lifecycleScope.launch {
                 settingsDao.upsert(
                     SettingsEntity(SettingsKeys.PREFERRED_BROWSER_PACKAGE, item.packageName)
                 )
+                selectedPackage = item.packageName
+                selectedLabel.text = getString(R.string.selected_browser_format, item.label)
+                finishButton.isEnabled = true
+                android.widget.Toast.makeText(
+                    this@OnboardingActivity,
+                    getString(R.string.browser_selected),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
             }
         }
         recycler.adapter = adapter
         adapter.submit(loadBrowsers())
 
+        lifecycleScope.launch {
+            val existing = settingsDao.getValue(SettingsKeys.PREFERRED_BROWSER_PACKAGE)
+            if (!existing.isNullOrBlank()) {
+                selectedPackage = existing
+                selectedLabel.text = getString(R.string.selected_browser_saved)
+                finishButton.isEnabled = true
+            }
+        }
+
         findViewById<MaterialButton>(R.id.setDefaultBrowserButton).setOnClickListener {
             openDefaultAppsSettings()
         }
 
-        findViewById<MaterialButton>(R.id.finishOnboardingButton).setOnClickListener {
+        finishButton.setOnClickListener {
             lifecycleScope.launch {
+                if (selectedPackage.isNullOrBlank()) {
+                    android.widget.Toast.makeText(
+                        this@OnboardingActivity,
+                        getString(R.string.select_browser_first),
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
                 settingsDao.upsert(SettingsEntity(SettingsKeys.ONBOARDING_COMPLETE, "true"))
                 startActivity(Intent(this@OnboardingActivity, com.aana.aegislink.MainActivity::class.java))
                 finish()

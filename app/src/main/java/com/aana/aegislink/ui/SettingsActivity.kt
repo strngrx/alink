@@ -30,6 +30,7 @@ class SettingsActivity : AppCompatActivity() {
         val toggleAutoBlacklist = findViewById<Switch>(R.id.toggleAutoBlacklist)
         val vtKeyInput = findViewById<EditText>(R.id.vtKeyInput)
         val aboutButton = findViewById<com.google.android.material.button.MaterialButton>(R.id.aboutButton)
+        val saveVtKeyButton = findViewById<com.google.android.material.button.MaterialButton>(R.id.saveVtKeyButton)
 
         val keyStore = SecurityKeyStore(this)
 
@@ -95,6 +96,17 @@ class SettingsActivity : AppCompatActivity() {
                 } else {
                     keyStore.clearApiKey()
                 }
+            }
+        }
+
+        saveVtKeyButton.setOnClickListener {
+            val key = vtKeyInput.text?.toString()?.trim().orEmpty()
+            if (key.isNotEmpty()) {
+                keyStore.saveApiKey(key)
+                android.widget.Toast.makeText(this, getString(R.string.vt_key_saved), android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                keyStore.clearApiKey()
+                android.widget.Toast.makeText(this, getString(R.string.vt_key_cleared), android.widget.Toast.LENGTH_SHORT).show()
             }
         }
 

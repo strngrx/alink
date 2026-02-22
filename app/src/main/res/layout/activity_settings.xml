@@ -220,6 +220,14 @@
                         android:layout_marginTop="12dp"
                         android:hint="@string/vt_key_hint"
                         android:inputType="textPassword" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/saveVtKeyButton"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/save_key" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

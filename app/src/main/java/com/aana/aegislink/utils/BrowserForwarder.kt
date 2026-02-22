@@ -1,6 +1,7 @@
 package com.aana.aegislink.utils
 
 import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -22,20 +23,38 @@ class BrowserForwarder(
         }
 
         try {
-            context.startActivity(intent)
+            val resolved = context.packageManager.resolveActivity(intent, 0)
+            if (resolved?.activityInfo?.packageName == context.packageName) {
+                openChooser(intent)
+            } else {
+                context.startActivity(intent)
+            }
         } catch (_: ActivityNotFoundException) {
             if (!preferred.isNullOrBlank()) {
                 intent.`package` = null
-                try {
-                    context.startActivity(intent)
-                } catch (_: ActivityNotFoundException) {
-                    android.widget.Toast.makeText(
-                        context,
-                        context.getString(com.aana.aegislink.R.string.no_browser_found),
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
-                }
+                openChooser(intent)
+            } else {
+                openChooser(intent)
             }
+        }
+    }
+
+    private fun openChooser(baseIntent: Intent) {
+        try {
+            val chooser = Intent.createChooser(
+                baseIntent,
+                context.getString(com.aana.aegislink.R.string.choose_browser)
+            )
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val exclude = ComponentName(context, com.aana.aegislink.InterceptorActivity::class.java)
+            chooser.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(exclude))
+            context.startActivity(chooser)
+        } catch (_: Exception) {
+            android.widget.Toast.makeText(
+                context,
+                context.getString(com.aana.aegislink.R.string.no_browser_found),
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
         }
     }
 }

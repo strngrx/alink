@@ -44,6 +44,9 @@
     <string name="vt_toggle_subtitle">Requires your API key (free tier: 4 req/min).</string>
     <string name="vt_key_hint">API key</string>
     <string name="vt_disabled">VirusTotal is disabled in Settings.</string>
+    <string name="save_key">Save key</string>
+    <string name="vt_key_saved">API key saved.</string>
+    <string name="vt_key_cleared">API key cleared.</string>
     <string name="added_to_blacklist">Added to blacklist.</string>
     <string name="added_to_whitelist">Added to whitelist.</string>
     <string name="auto_whitelist_title">Auto‑whitelist on proceed</string>
@@ -59,6 +62,11 @@
     <string name="onboarding_disclaimer">Limitations: in‑app WebViews and hardcoded intents may bypass AegisLink. No 100% safety guarantee.</string>
     <string name="finish">Finish</string>
     <string name="select">Select</string>
+    <string name="selected_browser_none">No browser selected yet.</string>
+    <string name="selected_browser_saved">Browser selected (saved).</string>
+    <string name="selected_browser_format">Selected: %1$s</string>
+    <string name="browser_selected">Browser selected.</string>
+    <string name="select_browser_first">Select a browser to continue.</string>
     <string name="about_title">About</string>
     <string name="about_body">AegisLink is a link hygiene and safety interceptor. Open‑source attributions: ClearURLs, PhishTank.</string>
     <string name="logs_title">App Logs</string>
@@ -67,6 +75,7 @@
     <string name="domain_hint">example.com</string>
     <string name="invalid_domain">Invalid domain</string>
     <string name="no_browser_found">No browser found to open this link.</string>
+    <string name="choose_browser">Choose browser</string>
     <string name="report_false_positive">Report false positive</string>
     <string name="report_received">Thanks. We’ll review this.</string>
     <string name="auto_whitelist_confirm_title">Always allow this domain?</string>
