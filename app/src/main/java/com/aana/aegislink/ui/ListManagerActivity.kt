@@ -17,13 +17,15 @@ import com.aana.aegislink.db.WhitelistEntity
 import com.google.android.material.textfield.TextInputEditText
 
 class ListManagerActivity : AppCompatActivity() {
+    private lateinit var blacklistAdapter: ListManagerAdapter
+    private lateinit var whitelistAdapter: ListManagerAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list_manager)
 
         val app = application as AegisLinkApp
-        lateinit var whitelistAdapter: ListManagerAdapter
-        val blacklistAdapter = ListManagerAdapter { domain ->
+        blacklistAdapter = ListManagerAdapter { domain ->
             lifecycleScope.launch {
                 app.db.blacklistDao().delete(domain)
                 loadLists(app, blacklistAdapter, whitelistAdapter)
