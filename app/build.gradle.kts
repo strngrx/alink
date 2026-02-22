@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+import java.net.URL
+
 android {
     namespace = "com.aana.aegislink"
     compileSdk = 34
@@ -47,8 +49,8 @@ tasks.register("downloadClearUrlsRules") {
         clearUrlsRulesAsset.parentFile.mkdirs()
         val shouldDownload = !clearUrlsRulesAsset.exists() || clearUrlsRulesAsset.length() == 0L
         if (shouldDownload) {
-            java.net.URL(clearUrlsRulesUrl).openStream().use { input ->
-                clearUrlsRulesAsset.outputStream().use { output ->
+            URL(clearUrlsRulesUrl).openStream().use { input: java.io.InputStream ->
+                clearUrlsRulesAsset.outputStream().use { output: java.io.OutputStream ->
                     input.copyTo(output)
                 }
             }
