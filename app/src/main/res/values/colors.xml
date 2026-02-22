@@ -1,0 +1,12 @@
+<resources>
+    <color name="aegis_primary">#2E5AAC</color>
+    <color name="aegis_on_primary">#FFFFFF</color>
+    <color name="aegis_secondary">#2C8C7B</color>
+    <color name="aegis_on_secondary">#FFFFFF</color>
+    <color name="aegis_surface">#FAFAFB</color>
+    <color name="aegis_on_surface">#1C1B1F</color>
+    <color name="vt_safe">#1B5E20</color>
+    <color name="vt_warning">#E65100</color>
+    <color name="vt_danger">#B71C1C</color>
+    <color name="vt_neutral">#37474F</color>
+</resources>

@@ -1,0 +1,35 @@
+# AegisLink Progress (Concise)
+
+2026-02-22
+- Phase 0 scaffold complete: Gradle setup, manifest intent filter, base app + activities, theme, raw/asset placeholders, package skeleton, .gitignore.
+- ClearURLs rules placeholder moved to assets: `app/src/main/assets/data.minify.json`.
+- Phase 1 scaffold: core pipeline classes + minimal wiring in `InterceptorActivity`.
+- CI added: GitHub Actions Android build (`.github/workflows/android.yml`).
+- Build task added to download ClearURLs rules into assets during build.
+- ClearURLs rule engine added with asset-backed parsing and query sanitization.
+- Exceptions now bypass sanitization but emit trust; redirections apply as bounded chain.
+- Phase 2 scaffold: Room entities, DAOs, and database class.
+- App-level Room initialization + settings-backed flags wired into pipeline.
+- Phase 3 scaffold: shortlink detector + UnshortenService; pipeline re-entry on resolved URL.
+- Phase 4 scaffold: VT service, key store, cache store, parser, verdict classifier, rate limiter.
+- VT repository added (cache + scan orchestration).
+- Phase 5 UI start: bottom sheet dialogs + routing from `InterceptorActivity`.
+- VT scan wired into Unknown URL bottom sheet (in-place update).
+- List manager UI scaffolded with blacklist/whitelist viewing and removal.
+- Stats recorder added (total cleaned/blocked counters).
+- MainActivity dashboard added (status + stats + manage lists).
+- Settings screen added with Instant Trust, referral, VT toggle + API key.
+- List manager toolbar action to Settings.
+- List manager reloads lists on resume.
+- Add-to-list actions show toast confirmations.
+- Auto-whitelist/auto-blacklist toggles added + wired.
+- Phase 7 onboarding added with default-browser prompt and forward-browser selection.
+- Minimal theme polish: brand colors + accent cards.
+- About screen added with hidden dev logs (7 taps).
+- README added (overview, permissions, limitations).
+- List manager now supports manual add for blacklist/whitelist.
+- Settings includes About link.
+- Added URL sanitization toggle, auto-blacklist confirmation, theme toggle, default browser status, VT verdict color.
+- Added blacklist seeding loader (asset-driven).
+- Added malicious false-positive action and UnshortenService retry.
+- Seeded blacklist with a minimal PhishTank snapshot.

@@ -1,0 +1,187 @@
+AEGISLINK — ARCHITECTURE & TECHNICAL WORKING
+
+OVERVIEW
+
+AegisLink is a single-process, event-driven Android app with no
+background services. It activates only when a URL intent is fired.
+The entry point is InterceptorActivity, registered in
+AndroidManifest.xml as an ACTION_VIEW handler for http/https schemes.
+When Android resolves an intent to AegisLink, InterceptorActivity
+extracts the URI and passes it to UrlPipeline, the central
+orchestrator.
+
+
+THE PIPELINE
+
+Each stage operates on a plain string URL and passes it forward.
+No shared mutable state between stages.
+
+  Raw Intent URI
+        |
+        v
+  UrlNormalizer
+    - Lowercase domain
+    - Percent-decode characters
+    - Strip URL fragment (#...)
+    - Remove trailing slash
+        |
+        v
+  ShortlinkDetector
+    - Match domain against shorteners_list.json
+    - If shortlink detected, forward to UnshortenService
+        |
+        v
+  UnshortenService  [if shortlink]
+    - POST to unshorten.me/api/v2/unshorten
+    - 10s timeout, single retry
+    - Resolved URL fed back to top of pipeline
+    - Graceful fallback if API unavailable
+        |
+        v
+  UrlSanitizer
+    - Parse bundled clearurls_rules.json
+    - Strip tracking parameters (utm_*, fbclid, gclid, etc.)
+    - Preserve functional parameters
+    - Emit implicit trust signal if domain-specific rules fired
+        |
+        v
+  UrlClassifier
+    - Blacklist lookup (SQLite, indexed)
+    - Implicit trust check
+    - Whitelist lookup (SQLite, indexed)
+    - Fallback: UNKNOWN
+        |
+        v
+  Decision Router
+    - BLACKLISTED  -> MaliciousUrlDialog (block)
+    - TRUSTED      -> auto-proceed, no UI
+    - WHITELISTED  -> auto-proceed, no UI
+    - UNKNOWN      -> UnknownUrlDialog
+
+
+CLASSIFICATION LOGIC
+
+UrlClassifier runs four checks in strict priority order
+against the sanitized URL domain.
+
+  1. Blacklist: indexed SQLite domain lookup.
+     Match -> route to MaliciousUrlDialog, pipeline terminates.
+
+  2. Implicit Trust: if UrlSanitizer emitted a trust signal
+     (domain-specific ClearURLs rules fired) AND Instant Trust
+     is enabled in settings -> auto-proceed, no UI shown.
+     Rationale: phishing sites don't have ClearURLs rules written
+     for them. Covers ~70-80% of legitimate traffic.
+
+  3. Whitelist: indexed SQLite lookup.
+     Match -> auto-proceed, no UI shown.
+
+  4. UNKNOWN: no match in any of the above ->
+     route to UnknownUrlDialog.
+
+Both blacklist and whitelist use a domain-indexed SQLite column.
+Target lookup time: <15ms.
+
+
+VIRUSTOTAL FLOW
+
+VT is entirely user-initiated, never automatic.
+
+  User taps "Scan with VirusTotal"
+        |
+        v
+  VirusTotalService
+    - POST URL to https://www.virustotal.com/api/v3/urls
+    - API key from EncryptedSharedPreferences (x-apikey header)
+    - Poll GET on analysis ID until results ready
+    - Timeout: 15s
+    - Rate limit: 4 req/min (free tier)
+        |
+        v
+  Result Parser
+    - Parse engine breakdown: malicious / suspicious / clean counts
+        |
+        v
+  VerdictClassifier
+    - 0 malicious engines          -> UNDETECTED
+    - 1-3 malicious or suspicious  -> SUSPICIOUS
+    - 4+ malicious                 -> DANGEROUS
+    - Not yet scanned              -> UNKNOWN
+        |
+        v
+  VtCacheDao
+    - Store result by URL hash, 24hr TTL
+    - Auto-prune expired entries on access
+    - Same URL won't re-hit API within TTL window
+        |
+        v
+  UnknownUrlDialog
+    - Updates in-place with engine breakdown + verdict label
+    - No screen navigation
+
+
+DATA LAYER
+
+Five SQLite tables managed via Room.
+
+  blacklist
+    columns : id INTEGER PK, domain TEXT UNIQUE,
+              added_date TIMESTAMP, source TEXT
+    index   : domain
+    size    : 5,000-10,000 entries (alpha)
+
+  whitelist
+    columns : id INTEGER PK, domain TEXT UNIQUE,
+              added_date TIMESTAMP, user_added BOOLEAN
+    index   : domain
+
+  settings
+    columns : key TEXT PK, value TEXT
+    stores  : feature toggles, API key ref, browser preference,
+              theme, instant trust, referral param setting
+
+  statistics
+    columns : stat_name TEXT PK, count INTEGER
+    stores  : total_cleaned, total_blocked, daily counters
+    note    : aggregate only, individual URLs never stored
+
+  vt_cache
+    columns : url_hash TEXT PK, scan_result TEXT (JSON),
+              timestamp TIMESTAMP
+    TTL     : 24 hours, auto-pruned on read
+
+
+THREADING MODEL
+
+  - Network ops (UnshortenService, VirusTotalService)
+    -> IO coroutine dispatcher
+
+  - SQLite ops (all DAO calls)
+    -> Room-managed executor
+
+  - UrlPipeline called from main thread,
+    suspends during network stages via Kotlin coroutines
+
+  - InterceptorActivity stays responsive throughout,
+    no ANR risk
+
+
+SECURITY PROPERTIES
+
+  - API key stored in EncryptedSharedPreferences (Android Keystore)
+  - All external calls over HTTPS, min TLS 1.2
+  - No URL logging at any stage
+  - No PII collection
+  - External API calls only on explicit user action
+  - Input validation on all user-provided data
+  - Permissions: INTERNET, ACCESS_NETWORK_STATE only
+
+
+KNOWN ARCHITECTURAL LIMITS
+
+  - WebView URLs inside other apps are not interceptable (OS limit)
+  - Hardcoded/explicit intents (Google apps, Chrome, WhatsApp)
+    bypass AegisLink entirely
+  - No ML, strictly deterministic rule-based classification
+  - No VPN/DNS layer, operates only at intent level
+  - ClearURLs rules are bundled at build time (for first version)

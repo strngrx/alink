@@ -1,0 +1,18 @@
+# Android Build Artifacts
+build/
+app/build/
+.gradle/
+captures/
+*.apk
+*.aar
+*.jks
+
+# Data files (Don't let Codex read the whole DB or Rules JSON)
+app/src/main/res/raw/*.json
+app/assets/*.db
+
+# Metadata & IDE
+.idea/
+*.iml
+local.properties
+
