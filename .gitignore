@@ -1,0 +1,22 @@
+# Gradle
+.gradle
+build/
+
+# Android Studio
+.idea/
+*.iml
+local.properties
+.DS_Store
+
+# Misc
+*.apk
+*.ap_
+*.aab
+*.keystore
+*.jks
+gradew/wrapper/gradle-wrapper.jar
+.cxx/
+*~
+*.swp
+*.lock
+*.log
